@@ -1,0 +1,17 @@
+{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "linkage.cruftbusters.com",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "d2j8wg1hctkry0.cloudfront.net"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -20,7 +20,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "sync": "aws s3 sync build/ s3://linkage.cruftbusters.com/",
+    "invalidate": "aws cloudfront create-invalidation --distribution-id E10ZC3LRJ78WTG --paths '/*'"
   },
   "eslintConfig": {
     "extends": [
