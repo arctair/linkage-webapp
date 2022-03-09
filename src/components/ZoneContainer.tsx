@@ -1,28 +1,49 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router'
-import { useZone, ZoneModel } from './ZoneProvider'
+import { GroupModel, LinkModel, useZone } from './ZoneProvider'
 
-export default function ZoneContainer() {
+export default function Zone() {
   const {
-    state: { id, zoneModel: zone, loading },
-    operations: { setPathID },
+    state: { zoneModel },
+    operations: { createGroup, setPathID },
   } = useZone()
   const { id: pathID } = useParams()
   useEffect(() => {
     setPathID(pathID)
   }, [setPathID, pathID])
-  return loading ? <Loading /> : <Zone id={id} zone={zone} />
+  return zoneModel ? (
+    <div style={{ marginLeft: '0.5rem' }}>
+      <div>zone ({zoneModel.id})</div>
+      {zoneModel?.groups.map(Group)}
+      <button onClick={createGroup}>create group</button>
+    </div>
+  ) : (
+    <Loading />
+  )
 }
 
-interface ZoneProps {
-  id: string
-  zone: ZoneModel
-}
-function Zone({ id, zone }: ZoneProps) {
+function Group({ id, name, links }: GroupModel) {
+  const {
+    operations: { createLink },
+  } = useZone()
   return (
-    <>
-      {id}: {JSON.stringify(zone)}
-    </>
+    <div style={{ marginLeft: '0.5rem' }}>
+      <div>
+        {name} ({id})
+      </div>
+      {links.map(Link)}
+      <button onClick={() => createLink(id)}>create link</button>
+    </div>
+  )
+}
+
+function Link({ id, text, href }: LinkModel) {
+  return (
+    <a
+      style={{ marginLeft: '0.5rem', display: 'block' }}
+      href={href}
+      children={`${text} (${id})`}
+    />
   )
 }
 

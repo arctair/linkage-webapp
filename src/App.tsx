@@ -28,7 +28,7 @@ function Landing() {
         navigate(`/v1/zones/${id}`)
       }}
     >
-      create your linkage
+      create zone
     </button>
   )
 }

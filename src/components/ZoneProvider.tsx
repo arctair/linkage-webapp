@@ -10,28 +10,46 @@ import {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-export interface ZoneModel {}
-interface ZoneContextState {
+export interface LinkModel {
   id: string
-  zoneModel: ZoneModel
+  text: string
+  href: string
+}
+export interface GroupModel {
+  id: string
+  name: string
+  links: Array<LinkModel>
+}
+export interface ZoneModel {
+  id: string
+  groups: Array<GroupModel>
+}
+interface ZoneContextState {
+  zoneModel?: ZoneModel
   loading: boolean
 }
 interface ZoneContext {
   state: ZoneContextState
   operations: {
     create: () => Promise<string>
+    createGroup: () => void
+    createLink: (groupName: string) => void
     setPathID: Dispatch<SetStateAction<string | undefined>>
   }
 }
 
 const zoneContext = createContext<ZoneContext>({
   state: {
-    id: '',
-    zoneModel: {},
     loading: false,
   },
   operations: {
     create: () => {
+      throw Error('No ZoneProvider')
+    },
+    createGroup: () => {
+      throw Error('No ZoneProvider')
+    },
+    createLink: () => {
       throw Error('No ZoneProvider')
     },
     setPathID: () => {
@@ -46,13 +64,17 @@ function zoneProviderReducer(
 ): ZoneContextState {
   switch (action.name) {
     case 'fetch':
-      return { id: '', zoneModel: {}, loading: true }
+      return { loading: true }
     case 'fetch-success':
-      return { id: action.id, zoneModel: action.zone, loading: false }
+      return { zoneModel: action.zoneModel, loading: false }
     case 'create':
-      return { id: '', zoneModel: '', loading: true }
+      return { loading: true }
     case 'create-success':
-      return { id: action.id, zoneModel: action.zone, loading: false }
+      return { zoneModel: action.zoneModel, loading: false }
+    case 'update':
+      return { ...state, loading: true }
+    case 'update-success':
+      return { zoneModel: action.zoneModel, loading: false }
     default:
       return state
   }
@@ -64,8 +86,6 @@ interface ZoneProviderProps {
 export default function ZoneProvider({ children }: ZoneProviderProps) {
   const [pathID, setPathID] = useState<string>()
   const [state, dispatch] = useReducer(zoneProviderReducer, {
-    id: '',
-    zoneModel: {},
     loading: false,
   })
 
@@ -76,8 +96,8 @@ export default function ZoneProvider({ children }: ZoneProviderProps) {
         const response = await fetch(
           `https://linkage-api.cruftbusters.com/v1/zones/${pathID}`,
         )
-        const zone = await response.json()
-        dispatch({ name: 'fetch-success', id: pathID, zone })
+        const zoneModel = { ...(await response.json()), id: pathID }
+        dispatch({ name: 'fetch-success', zoneModel })
       }
     })()
   }, [pathID])
@@ -97,9 +117,76 @@ export default function ZoneProvider({ children }: ZoneProviderProps) {
                 method: 'POST',
               },
             )
-            const zone = await response.json()
-            dispatch({ name: 'create-success', id, zone })
+            const zoneModel = { ...(await response.json()), id }
+            dispatch({ name: 'create-success', zoneModel })
             return id
+          },
+          createGroup: async () => {
+            if (!state.zoneModel) return
+            dispatch({ name: 'update' })
+            const upZoneModel = {
+              ...state.zoneModel,
+              groups: (state.zoneModel?.groups || []).concat({
+                id: uuidv4(),
+                name: 'new group',
+                links: [],
+              }),
+            }
+            const response = await fetch(
+              `https://linkage-api.cruftbusters.com/v1/zones/${state.zoneModel.id}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(upZoneModel),
+              },
+            )
+            const downZoneModel = {
+              ...(await response.json()),
+              id: state.zoneModel.id,
+            }
+            dispatch({
+              name: 'update-success',
+              zoneModel: downZoneModel,
+            })
+          },
+          createLink: async (groupId) => {
+            if (!state.zoneModel) return
+            dispatch({ name: 'update' })
+            const upZoneModel = {
+              ...state.zoneModel,
+              groups: (state.zoneModel?.groups || []).map((group) => {
+                if (group.id === groupId) {
+                  return {
+                    ...group,
+                    links: group.links.concat({
+                      id: uuidv4(),
+                      text: 'new link',
+                      href: 'https://',
+                    }),
+                  }
+                } else return group
+              }),
+            }
+            const response = await fetch(
+              `https://linkage-api.cruftbusters.com/v1/zones/${state.zoneModel.id}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(upZoneModel),
+              },
+            )
+            const downZoneModel = {
+              ...(await response.json()),
+              id: state.zoneModel.id,
+            }
+            dispatch({
+              name: 'update-success',
+              zoneModel: downZoneModel,
+            })
           },
           setPathID,
         },
