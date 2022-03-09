@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { GroupModel, LinkModel, useZone } from './ZoneProvider'
 
@@ -14,9 +14,11 @@ export default function Zone() {
   return zoneModel ? (
     <div style={{ marginLeft: '0.5rem' }}>
       <div>
-        zone ({zoneModel.id}) <button onClick={createGroup}>+</button>
+        zone <button onClick={createGroup}>+</button>
       </div>
-      {zoneModel?.groups.map(Group)}
+      {zoneModel?.groups.map((groupModel) => (
+        <Group key={groupModel.id} {...groupModel} />
+      ))}
     </div>
   ) : (
     <Loading />
@@ -25,25 +27,59 @@ export default function Zone() {
 
 function Group({ id, name, links }: GroupModel) {
   const {
-    operations: { createLink },
+    operations: { createLink, setGroupName },
   } = useZone()
+  const [isEditMode, setEditMode] = useState(false)
   return (
     <div style={{ marginLeft: '0.5rem' }}>
       <div>
-        {name} ({id}) <button onClick={() => createLink(id)}>+</button>
+        {isEditMode ? (
+          <input
+            value={name}
+            onChange={(e) => setGroupName(id, e.target.value)}
+          />
+        ) : (
+          name
+        )}{' '}
+        <button onClick={() => setEditMode(!isEditMode)}>
+          {isEditMode ? 'save' : 'edit'}
+        </button>{' '}
+        <button onClick={() => createLink(id)}>+</button>
       </div>
-      {links.map(Link)}
+      {links.map((linkModel) => (
+        <Link key={linkModel.id} {...linkModel} />
+      ))}
     </div>
   )
 }
 
 function Link({ id, text, href }: LinkModel) {
+  const {
+    operations: { setLinkText, setLinkHref },
+  } = useZone()
+  const [isEditMode, setEditMode] = useState(false)
   return (
-    <a
-      style={{ marginLeft: '0.5rem', display: 'block' }}
-      href={href}
-      children={`${text} (${id})`}
-    />
+    <div style={{ marginLeft: '0.5rem' }}>
+      {isEditMode ? (
+        <>
+          <input
+            value={text}
+            onChange={(e) => setLinkText(id, e.target.value)}
+          />{' '}
+          <input
+            value={href}
+            onChange={(e) => setLinkHref(id, e.target.value)}
+          />
+        </>
+      ) : (
+        <>
+          <a href={href} children={text} />
+        </>
+      )}{' '}
+      <button onClick={() => setEditMode(!isEditMode)}>
+        {isEditMode ? 'save' : 'edit'}
+      </button>
+    </div>
   )
 }
 
