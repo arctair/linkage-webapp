@@ -13,9 +13,10 @@ export default function Zone() {
   }, [setPathID, pathID])
   return zoneModel ? (
     <div style={{ marginLeft: '0.5rem' }}>
-      <div>zone ({zoneModel.id})</div>
+      <div>
+        zone ({zoneModel.id}) <button onClick={createGroup}>+</button>
+      </div>
       {zoneModel?.groups.map(Group)}
-      <button onClick={createGroup}>create group</button>
     </div>
   ) : (
     <Loading />
@@ -29,10 +30,9 @@ function Group({ id, name, links }: GroupModel) {
   return (
     <div style={{ marginLeft: '0.5rem' }}>
       <div>
-        {name} ({id})
+        {name} ({id}) <button onClick={() => createLink(id)}>+</button>
       </div>
       {links.map(Link)}
-      <button onClick={() => createLink(id)}>create link</button>
     </div>
   )
 }
