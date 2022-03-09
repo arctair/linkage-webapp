@@ -37,6 +37,17 @@
     "ACMCertificateArn": "arn:aws:acm:us-east-1:552879364626:certificate/542457b4-52f7-4890-90aa-10feaebaf81d",
     "SSLSupportMethod": "sni-only"
   },
+  "CustomErrorResponses": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "ErrorCode": 404,
+        "ResponsePagePath": "/index.html",
+        "ResponseCode": "200",
+        "ErrorCachingMinTTL": 10
+      }
+    ]
+  },
   "Comment": "",
   "Enabled": true,
   "CallerReference": "cloudfront setup automation"
