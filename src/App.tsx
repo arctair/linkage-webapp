@@ -1,32 +1,34 @@
-import { useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
-
-interface Zone {}
+import { Route, Routes, useNavigate } from 'react-router'
+import ZoneContainer from './components/ZoneContainer'
+import ZoneProvider, { useZone } from './components/ZoneProvider'
 
 export default function App() {
-  const [[id, zone], setIdAndZone] = useState<[string, Zone]>(['', {}])
   return (
-    <div style={{ height: '100%' }}>
+    <div>
       <div>linkage</div>
-      {id ? (
-        `${id}: ${JSON.stringify(zone)}`
-      ) : (
-        <button
-          onClick={async () => {
-            const id = uuidv4()
-            const response = await fetch(
-              `https://linkage-api.cruftbusters.com/v1/zones/${id}`,
-              {
-                method: 'POST',
-              },
-            )
-            const zone = await response.json()
-            setIdAndZone([id, zone])
-          }}
-        >
-          create your linkage
-        </button>
-      )}
+      <ZoneProvider>
+        <Routes>
+          <Route path="/v1/zones/:id" element={<ZoneContainer />} />
+          <Route path="*" element={<Landing />} />
+        </Routes>
+      </ZoneProvider>
     </div>
+  )
+}
+
+function Landing() {
+  const navigate = useNavigate()
+  const {
+    operations: { create },
+  } = useZone()
+  return (
+    <button
+      onClick={async () => {
+        const id = await create()
+        navigate(`/v1/zones/${id}`)
+      }}
+    >
+      create your linkage
+    </button>
   )
 }
